@@ -17,14 +17,29 @@ public class BeanDefinitionReader {
 	
 	private Properties config = new Properties();
 	private List<String> registryBeanClasses = new ArrayList<String>();
+	//在配置文件中，用来获取自动扫描的报名的key
+	private String SCAN_PACKAGE = "scanPackage";
 	
 	public BeanDefinitionReader(String... locations) {
-		InputStream is = this.getClass().getClassLoader().getResourceAsStream(locations[0]);
+		InputStream is = this.getClass().getClassLoader().getResourceAsStream(locations[0].replace("classpath:", ""));
 		try {
 			config.load(is);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				if(is!=null) is.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		
+		doScan(config.getProperty(SCAN_PACKAGE));
+	}
+	
+	public List<String> loadBeanDefinitions() {
+		return this.registryBeanClasses;
 	}
 	
 	public void doScan(String packageName) {
