@@ -1,0 +1,9 @@
+# Eclipse project files  
+.classpath  
+.project
+
+#Generated files
+/bin/
+/target/
+/.externalToolBuilders/
+.settings/
