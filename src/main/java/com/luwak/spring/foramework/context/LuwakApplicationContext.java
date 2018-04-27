@@ -40,6 +40,11 @@ public class LuwakApplicationContext implements BeanFactory {
 		List<String> beanDefinitions = reader.loadBeanDefinitions();
 		
 		//注册
+		doRegistry(beanDefinitions);
+		
+		//依赖注入（lazy-init=false）
+		//在这里自动调用getBean
+		
 		
 	}
 	
@@ -78,7 +83,25 @@ public class LuwakApplicationContext implements BeanFactory {
 		
 	}
 	
+	//自动注入
+	public void doAutowire() {
+		
+		for(Map.Entry<String, LuwakBeanDefinition> entry : beanDefinitionMap.entrySet()) {
+			String beanName = entry.getKey();
+			
+			if(!entry.getValue().isLazyInit()) {
+				getBean(beanName);
+			}
+		}
+		
+	}
+	
+	//开始自动注入方法
+	//装饰器模式
+	//保留原来的OOP关系，
 	public Object getBean(String name) {
+		
+		
 		
 		return null;
 	}
