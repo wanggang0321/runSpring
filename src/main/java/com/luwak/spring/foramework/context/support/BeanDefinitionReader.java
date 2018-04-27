@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import com.luwak.spring.foramework.beans.LuwakBeanDefinition;
+
 /**
  * @author wanggang
  * @date 2018年4月24日 下午1:40:04
@@ -53,6 +55,24 @@ public class BeanDefinitionReader {
 				registryBeanClasses.add(packageName + "/" + f.getName().replace(".class", ""));
 			}
 		}
+	}
+	
+	//没注册一个className，就返回一个BeanDefinition，自己包装
+	//只是为了对配置信息进行一个包装
+	public LuwakBeanDefinition register(String className) {
+		if(this.registryBeanClasses.contains(className)) {
+			LuwakBeanDefinition beanDefinition = new LuwakBeanDefinition();
+			beanDefinition.setBeanClassName(className);
+			beanDefinition.setFactoryBeanName(lowerFirstCase(className.substring(className.indexOf(".") + 1)));
+			return beanDefinition;
+		}
+		return null;
+	}
+	
+	private String lowerFirstCase(String className) {
+		char[] chars = className.toCharArray();
+		chars[0] += 32;
+		return String.valueOf(chars);
 	}
 	
 }

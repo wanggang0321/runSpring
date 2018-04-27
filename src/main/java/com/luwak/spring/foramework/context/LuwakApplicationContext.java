@@ -45,6 +45,37 @@ public class LuwakApplicationContext implements BeanFactory {
 	
 	private void doRegistry(List<String> beanDefinitions) {
 		
+		//beanName有三种情况
+		//1.默认是类名首字母小写
+		//2.自定义名称
+		//3.接口注入？？？？？
+		try {
+			for(String className : beanDefinitions) {
+			
+				Class<?> claxx = Class.forName(className);
+				
+				if(claxx.isInterface()) {
+					continue;
+				}
+				
+				LuwakBeanDefinition beanDefinition = reader.register(className);
+				if(beanDefinition!=null) {
+					this.beanDefinitionMap.put(className, beanDefinition);
+				}
+				
+				Class<?>[] interfaces = claxx.getInterfaces();
+				for(Class<?> i : interfaces) {
+					//如果是多个实现类，只能覆盖，因为Spring没那么智能，就是这么傻，这里需要验证
+					//这个时候，可以自定义名字
+					this.beanDefinitionMap.put(i.getSimpleName(), beanDefinition);
+				}
+				
+				//到这里为止，容器初始化完毕
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public Object getBean(String name) {
