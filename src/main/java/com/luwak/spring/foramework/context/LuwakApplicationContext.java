@@ -1,12 +1,17 @@
 package com.luwak.spring.foramework.context;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.luwak.spring.foramework.annotation.RuAutowired;
+import com.luwak.spring.foramework.annotation.RuController;
+import com.luwak.spring.foramework.annotation.RuService;
 import com.luwak.spring.foramework.beans.LuwakBeanDefinition;
+import com.luwak.spring.foramework.beans.LuwakBeanPostProcessor;
 import com.luwak.spring.foramework.beans.LuwakBeanWrapper;
 import com.luwak.spring.foramework.context.support.BeanDefinitionReader;
 import com.luwak.spring.foramework.core.BeanFactory;
@@ -44,7 +49,7 @@ public class LuwakApplicationContext implements BeanFactory {
 		
 		//依赖注入（lazy-init=false）
 		//在这里自动调用getBean
-		
+		doAutowire();
 		
 	}
 	
@@ -94,16 +99,100 @@ public class LuwakApplicationContext implements BeanFactory {
 			}
 		}
 		
+		for(Map.Entry<String, LuwakBeanWrapper> entry : beanWrapperMap.entrySet()) {
+			populateBean(entry.getKey(), entry.getValue().getWrappedInstance());
+		}
+		
+	}
+	
+	private void populateBean(String beanName, Object instance) {
+		
+		Class<?> claxx = instance.getClass();
+		
+		Field[] fields = claxx.getFields();
+		
+		if(!(claxx.isAnnotationPresent(RuController.class) || claxx.isAnnotationPresent(RuService.class))) {
+		
+			for(Field f : fields) {
+				
+				if(!f.isAnnotationPresent(RuAutowired.class)) {
+					//
+					continue;
+				}
+				
+				RuAutowired autowired = f.getAnnotation(RuAutowired.class);
+				String filedName = autowired.value().trim();
+				if("".equals(filedName)) {
+					filedName = f.getName();
+				}
+				
+				f.setAccessible(true);
+				
+				try {
+					f.set(instance, this.beanWrapperMap.get(filedName).getWrappedInstance());
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	//开始自动注入方法
 	//装饰器模式
-	//保留原来的OOP关系，
-	public Object getBean(String name) {
+	//1.保留原来的OOP关系，
+	//2.我需要对它扩展、增强（为了以后AOP打基础）
+	public Object getBean(String beanName) {
 		
+		LuwakBeanDefinition beanDefinition = this.beanDefinitionMap.get(beanName);
 		
+		String className = beanDefinition.getBeanClassName();
+		
+		try {
+			//生成通知事件
+			LuwakBeanPostProcessor postProcessor = new LuwakBeanPostProcessor();
+			
+			Object instance = instantionBean(beanDefinition);
+			if(null==instance) return null;
+			
+			//在实例化以前调用一次
+			postProcessor.postProcessBeforeInitialization(instance, beanName);
+			
+			LuwakBeanWrapper beanWrapper = new LuwakBeanWrapper(instance);
+			beanWrapper.setPostProcessor(postProcessor);
+			this.beanWrapperMap.put(beanName, beanWrapper);
+			
+			postProcessor.postProcessAfterInitialization(instance, beanName);
+			
+			//通过这样一调用，相当于给我们自己留有了可操作空间
+			return this.beanWrapperMap.get(beanName).getWrappedInstance();
+		} catch (Exception e) {
+			
+		}
 		
 		return null;
+	}
+	
+	private Object instantionBean(LuwakBeanDefinition beanDefinition) {
+		
+		Object instance = null;
+		
+		try {
+			String className = beanDefinition.getBeanClassName();
+			
+			if(this.beanCacheMap.containsKey(className)) {
+				instance = beanCacheMap.get(className);
+			} else {
+				Class<?> claxx = Class.forName(className);
+				instance = claxx.newInstance();
+				this.beanCacheMap.put(className, instance);
+			}
+		} catch (Exception e) {
+			
+		}
+		
+		return instance;
 	}
 
 }
