@@ -109,32 +109,33 @@ public class LuwakApplicationContext implements BeanFactory {
 		
 		Class<?> claxx = instance.getClass();
 		
-		Field[] fields = claxx.getFields();
-		
 		if(!(claxx.isAnnotationPresent(RuController.class) || claxx.isAnnotationPresent(RuService.class))) {
+			return;
+		}
 		
-			for(Field f : fields) {
-				
-				if(!f.isAnnotationPresent(RuAutowired.class)) {
-					//
-					continue;
-				}
-				
-				RuAutowired autowired = f.getAnnotation(RuAutowired.class);
-				String filedName = autowired.value().trim();
-				if("".equals(filedName)) {
-					filedName = f.getName();
-				}
-				
-				f.setAccessible(true);
-				
-				try {
-					f.set(instance, this.beanWrapperMap.get(filedName).getWrappedInstance());
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				}
+		Field[] fields = claxx.getDeclaredFields();
+		
+		for(Field f : fields) {
+			
+			if(!f.isAnnotationPresent(RuAutowired.class)) {
+				//
+				continue;
+			}
+			
+			RuAutowired autowired = f.getAnnotation(RuAutowired.class);
+			String autowiredBeanName = autowired.value().trim();
+			if("".equals(autowiredBeanName)) {
+				autowiredBeanName = f.getName();
+			}
+			
+			f.setAccessible(true);
+			
+			try {
+				f.set(instance, this.beanWrapperMap.get(autowiredBeanName).getWrappedInstance());
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
 			}
 		}
 	}
