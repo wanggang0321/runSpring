@@ -1,12 +1,12 @@
 package com.luwak.spring.foramework.context;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.luwak.spring.demo.action.MyAction;
 import com.luwak.spring.foramework.annotation.RuAutowired;
 import com.luwak.spring.foramework.annotation.RuController;
 import com.luwak.spring.foramework.annotation.RuService;
@@ -51,6 +51,8 @@ public class LuwakApplicationContext implements BeanFactory {
 		//在这里自动调用getBean
 		doAutowire();
 		
+		MyAction action = (MyAction) this.getBean("myAction");
+		action.query("Luwak");
 	}
 	
 	private void doRegistry(List<String> beanDefinitions) {
