@@ -35,7 +35,11 @@ public class LuwakApplicationContext implements BeanFactory {
 	
 	//用来存储所有的被代理过的对象
 	private Map<String, LuwakBeanWrapper> beanWrapperMap = new ConcurrentHashMap<String, LuwakBeanWrapper>();
-
+	
+	public LuwakApplicationContext(String... configLocations) {
+		this.configLocations = configLocations;
+	}
+	
 	public void refresh() {
 		
 		//定位
