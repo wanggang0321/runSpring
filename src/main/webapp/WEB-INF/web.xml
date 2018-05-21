@@ -8,7 +8,7 @@
 		<servlet-class>com.luwak.spring.foramework.webmvc.servlet.DispatcherServlet</servlet-class>
 		<init-param>
 			<param-name>contextConfigLocation</param-name>
-			<param-value>classpath:application.properties</param-value>
+			<param-value>classpath:applicationContext.properties</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

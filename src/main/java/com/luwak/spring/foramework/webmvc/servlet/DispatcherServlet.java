@@ -1,6 +1,9 @@
 package com.luwak.spring.foramework.webmvc.servlet;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -8,6 +11,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.luwak.spring.foramework.annotation.RuController;
+import com.luwak.spring.foramework.annotation.RuRequestMapping;
 import com.luwak.spring.foramework.context.LuwakApplicationContext;
 
 /**
@@ -18,6 +23,8 @@ import com.luwak.spring.foramework.context.LuwakApplicationContext;
 public class DispatcherServlet extends HttpServlet {
 	
 	private final String LOCATION = "contextConfigLocation";
+	
+	private Map<String, Method> handlerMappings = new HashMap<String, Method>();
 
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -63,9 +70,29 @@ public class DispatcherServlet extends HttpServlet {
 	private void initLocaleResolver(LuwakApplicationContext context) {}
 	private void initMultipartResolver(LuwakApplicationContext context) {}
 
+	//将Controller中配置的RequestMapping和method进行一一映射
 	private void initHandlerMappings(LuwakApplicationContext context) {
-		//将Controller中配置的RequestMapping和method进行一一映射
 		//按照通常的理解，应该是一个map
+		//Map<String, Method> map
+		//Map<url, method>
+		
+		String[] beanNames = context.getBeanDefinitionNames();
+		for(String beanName : beanNames) {
+			Object bean = context.getBean(beanName);
+			Class clazz = bean.getClass();
+			
+			if(!clazz.isAnnotationPresent(RuController.class)) {
+				continue;
+			}
+			
+			Method[] methods = clazz.getMethods();
+			for(Method m : methods) {
+				if(m.isAnnotationPresent(RuRequestMapping.class)) {
+					String url = m.getAnnotation(RuRequestMapping.class).value();
+					handlerMappings.put(url, m);
+				}
+			}
+		}
 		
 	}
 	

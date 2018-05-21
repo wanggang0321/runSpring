@@ -202,4 +202,8 @@ public class LuwakApplicationContext implements BeanFactory {
 		return instance;
 	}
 
+	public String[] getBeanDefinitionNames() {
+		return this.beanDefinitionMap.keySet().toArray(new String[this.beanDefinitionMap.size()]);
+	}
+	
 }
