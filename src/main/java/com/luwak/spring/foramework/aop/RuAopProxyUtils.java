@@ -3,8 +3,6 @@ package com.luwak.spring.foramework.aop;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 
-import com.gupaoedu.vip.spring.formework.aop.GPAopProxy;
-
 /**
  * @author wanggang
  * @date 2018年5月21日 下午2:35:35
@@ -26,7 +24,7 @@ public class RuAopProxyUtils {
     private static Object getProxyTargetObject(Object proxy) throws Exception{
         Field h = proxy.getClass().getSuperclass().getDeclaredField("h");
         h.setAccessible(true);
-        GPAopProxy aopProxy = (GPAopProxy) h.get(proxy);
+        RuAopProxy aopProxy = (RuAopProxy) h.get(proxy);
         Field target = aopProxy.getClass().getDeclaredField("target");
         target.setAccessible(true);
         return  target.get(aopProxy);
