@@ -53,7 +53,7 @@ public class DispatcherServlet extends HttpServlet {
 		initLocaleResolver(context); //本地化解析
 		initThemeResolver(context); //主题解析
 		
-		//自己实现，RuHandlerMapping，用来保存Controller中RequestMapping和method的对应关系
+		//自己实现，RuHandlerMapping，用来保存Controller中配置的RequestMapping和method的对应关系
 		initHandlerMappings(context);
 		//自己实现，RuHandlerAdapter，用来动态匹配method参数，包括类转换、动态赋值
 		initHandlerAdapters(context);//通过HandlerAdapter进行多类型的参数动态匹配
@@ -72,7 +72,6 @@ public class DispatcherServlet extends HttpServlet {
 	private void initViewResolvers(LuwakApplicationContext context) {}
 	private void initRequestToViewNameTranslator(LuwakApplicationContext context) {}
 	private void initHandlerExceptionResolvers(LuwakApplicationContext context) {}
-	private void initHandlerAdapters(LuwakApplicationContext context) {}
 	private void initThemeResolver(LuwakApplicationContext context) {}
 	private void initLocaleResolver(LuwakApplicationContext context) {}
 	private void initMultipartResolver(LuwakApplicationContext context) {}
@@ -121,6 +120,10 @@ public class DispatcherServlet extends HttpServlet {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+		
+	}
+	
+	private void initHandlerAdapters(LuwakApplicationContext context) {
 		
 	}
 	
