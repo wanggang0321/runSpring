@@ -26,7 +26,30 @@ public class RuAopProxy implements InvocationHandler {
 	}
 	
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		return null;
+		
+		Method m = this.target.getClass().getMethod(method.getName(), method.getParameterTypes());
+		
+		//？？？
+		
+		//在原始方法调用以前需要执行增强的代码
+		//这里需要通过原生方法去找，通过代理方法是找不到的
+		if(config.contains(m)) {
+			RuAopConfig.RuAspect aspect = config.get(m);
+			aspect.getPoints()[0].invoke(aspect.getAspect());
+		}
+		
+		//反射调用原始方法
+		Object obj = m.invoke(this.target, args);
+		System.out.println(args);
+		
+		//在原始方法调用以后要执行增强的代码
+		if(config.contains(m)) {
+			RuAopConfig.RuAspect aspect = config.get(m);
+			aspect.getPoints()[1].invoke(aspect.getAspect());
+		}
+		
+		//将最原始的返回值返回出去
+		return obj;
 	}
 
 }

@@ -45,7 +45,7 @@ public class RuAopConfig {
 			return this.aspect;
 		}
 		
-		public Method[] getMethods() {
+		public Method[] getPoints() {
 			return this.points;
 		}
 		
