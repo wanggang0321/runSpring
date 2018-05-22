@@ -2,8 +2,11 @@ package com.luwak.spring.foramework.webmvc.servlet;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -13,7 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.luwak.spring.foramework.annotation.RuController;
 import com.luwak.spring.foramework.annotation.RuRequestMapping;
+import com.luwak.spring.foramework.aop.RuAopProxyUtils;
 import com.luwak.spring.foramework.context.LuwakApplicationContext;
+import com.luwak.spring.foramework.webmvc.RuHandlerMapping;
 
 /**
  * @author wanggang
@@ -24,7 +29,9 @@ public class DispatcherServlet extends HttpServlet {
 	
 	private final String LOCATION = "contextConfigLocation";
 	
-	private Map<String, Method> handlerMappings = new HashMap<String, Method>();
+	//思考一下这样设计的精妙之处
+	//handlerMapping是spring最核心的设计，它厉害到直接干掉了struts、webwork等MVC框架
+	private List<RuHandlerMapping> handlerMapping = new ArrayList<RuHandlerMapping>();
 
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -76,22 +83,43 @@ public class DispatcherServlet extends HttpServlet {
 		//Map<String, Method> map
 		//Map<url, method>
 		
+		//首先从容器中取到所有的实例
 		String[] beanNames = context.getBeanDefinitionNames();
-		for(String beanName : beanNames) {
-			Object bean = context.getBean(beanName);
-			Class clazz = bean.getClass();
-			
-			if(!clazz.isAnnotationPresent(RuController.class)) {
-				continue;
-			}
-			
-			Method[] methods = clazz.getMethods();
-			for(Method m : methods) {
-				if(m.isAnnotationPresent(RuRequestMapping.class)) {
-					String url = m.getAnnotation(RuRequestMapping.class).value();
-					handlerMappings.put(url, m);
+		try {
+			for(String beanName : beanNames) {
+				//到了MVC层，对外提供的方法只有一个getBean
+				//返回的对象不是BeanWrapper，怎么办？为什么会不是BeanWrapper？
+				Object proxy = context.getBean(beanName);
+				//这里为什么要取到原生对象
+				Object controller = RuAopProxyUtils.getTargetObject(proxy);
+				Class<?> clazz = controller.getClass();
+				
+				if(!clazz.isAnnotationPresent(RuController.class)) {
+					continue;
+				}
+				
+				String baseUrl = "";
+				if(clazz.isAnnotationPresent(RuRequestMapping.class)) {
+					RuRequestMapping mapping = clazz.getAnnotation(RuRequestMapping.class);
+					baseUrl = mapping.value();
+				}
+				
+				//扫描所有的public方法
+				Method[] methods = clazz.getMethods();
+				for(Method m : methods) {
+					if(!m.isAnnotationPresent(RuRequestMapping.class)) {
+						continue;
+					}
+					RuRequestMapping requestMapping = m.getAnnotation(RuRequestMapping.class);
+					String regex = ("/" + baseUrl + requestMapping.value().replaceAll("\\*", ".*")).replaceAll("/+", "/");
+					Pattern pattern = Pattern.compile(regex);
+					this.handlerMapping.add(new RuHandlerMapping(controller, m, pattern));
+					
+					System.out.println("Mapping : " + regex + " , " + m);
 				}
 			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		
 	}
