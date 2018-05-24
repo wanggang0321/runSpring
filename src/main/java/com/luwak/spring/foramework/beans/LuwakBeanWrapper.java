@@ -1,5 +1,7 @@
 package com.luwak.spring.foramework.beans;
 
+import com.luwak.spring.foramework.aop.RuAopConfig;
+import com.luwak.spring.foramework.aop.RuAopProxy;
 import com.luwak.spring.foramework.core.FactoryBean;
 
 /**
@@ -9,6 +11,8 @@ import com.luwak.spring.foramework.core.FactoryBean;
  */
 public class LuwakBeanWrapper extends FactoryBean {
 	
+	private RuAopProxy aopProxy = new RuAopProxy();
+	
 	//支持事件响应，会有一个监听
 	private LuwakBeanPostProcessor postProcessor;
 	private Object wrapperInstance;
@@ -16,7 +20,8 @@ public class LuwakBeanWrapper extends FactoryBean {
 	private Object originalInstance;
 	
 	public LuwakBeanWrapper(Object instance) {
-		this.wrapperInstance = instance;
+		//从这里开始，要把动态的代码添加进来了
+		this.wrapperInstance = aopProxy.getProxy(instance);
 		this.originalInstance = instance;
 	}
 	
@@ -35,6 +40,14 @@ public class LuwakBeanWrapper extends FactoryBean {
 
 	public void setPostProcessor(LuwakBeanPostProcessor postProcessor) {
 		this.postProcessor = postProcessor;
+	}
+
+	public void setAopConfig(RuAopConfig config) {
+		this.aopProxy.setConfig(config);
+	}
+	
+	public Object getOriginalInstance() {
+		return originalInstance;
 	}
 	
 }

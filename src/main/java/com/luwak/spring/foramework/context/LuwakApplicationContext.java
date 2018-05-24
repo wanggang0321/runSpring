@@ -1,16 +1,20 @@
 package com.luwak.spring.foramework.context;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.luwak.spring.demo.action.MyAction;
 import com.luwak.spring.foramework.annotation.RuAutowired;
 import com.luwak.spring.foramework.annotation.RuController;
 import com.luwak.spring.foramework.annotation.RuService;
+import com.luwak.spring.foramework.aop.RuAopConfig;
 import com.luwak.spring.foramework.beans.LuwakBeanDefinition;
 import com.luwak.spring.foramework.beans.LuwakBeanPostProcessor;
 import com.luwak.spring.foramework.beans.LuwakBeanWrapper;
@@ -108,7 +112,7 @@ public class LuwakApplicationContext implements BeanFactory {
 		}
 		
 		for(Map.Entry<String, LuwakBeanWrapper> entry : beanWrapperMap.entrySet()) {
-			populateBean(entry.getKey(), entry.getValue().getWrappedInstance());
+			populateBean(entry.getKey(), entry.getValue().getOriginalInstance());
 		}
 		
 	}
@@ -169,6 +173,7 @@ public class LuwakApplicationContext implements BeanFactory {
 			postProcessor.postProcessBeforeInitialization(instance, beanName);
 			
 			LuwakBeanWrapper beanWrapper = new LuwakBeanWrapper(instance);
+			beanWrapper.setAopConfig(instantionAopConfig(beanDefinition));
 			beanWrapper.setPostProcessor(postProcessor);
 			this.beanWrapperMap.put(beanName, beanWrapper);
 			
@@ -177,10 +182,37 @@ public class LuwakApplicationContext implements BeanFactory {
 			//通过这样一调用，相当于给我们自己留有了可操作空间
 			return this.beanWrapperMap.get(beanName).getWrappedInstance();
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 		
 		return null;
+	}
+	
+	private RuAopConfig instantionAopConfig(LuwakBeanDefinition beanDefinition) throws Exception {
+		RuAopConfig config = new RuAopConfig();
+        String expression = reader.getConfig().getProperty("pointCut");
+        String[] before = reader.getConfig().getProperty("aspectBefore").split("\\s");
+        String[] after = reader.getConfig().getProperty("aspectAfter").split("\\s");
+
+        String className = beanDefinition.getBeanClassName();
+        Class<?> clazz = Class.forName(className);
+
+        Pattern pattern = Pattern.compile(expression);
+
+        Class aspectClass = Class.forName(before[0]);
+        //在这里得到的方法都是原生的方法
+        for (Method m : clazz.getMethods()){
+
+            //public .* com\.gupaoedu\.vip\.spring\.demo\.service\..*Service\..*\(.*\)
+            //public java.lang.String com.gupaoedu.vip.spring.demo.service.impl.ModifyService.add(java.lang.String,java.lang.String)
+            Matcher matcher = pattern.matcher(m.toString());
+            if(matcher.matches()){
+                //能满足切面规则的类，添加的AOP配置中
+                config.put(m,aspectClass.newInstance(),new Method[]{aspectClass.getMethod(before[1]),aspectClass.getMethod(after[1])});
+            }
+        }
+
+        return config;
 	}
 	
 	private Object instantionBean(LuwakBeanDefinition beanDefinition) {
@@ -198,7 +230,7 @@ public class LuwakApplicationContext implements BeanFactory {
 				this.beanCacheMap.put(className, instance);
 			}
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 		
 		return instance;
