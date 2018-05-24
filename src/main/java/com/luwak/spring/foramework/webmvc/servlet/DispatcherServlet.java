@@ -1,5 +1,6 @@
 package com.luwak.spring.foramework.webmvc.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -21,6 +22,7 @@ import com.luwak.spring.foramework.aop.RuAopProxyUtils;
 import com.luwak.spring.foramework.context.LuwakApplicationContext;
 import com.luwak.spring.foramework.webmvc.RuHandlerAdapter;
 import com.luwak.spring.foramework.webmvc.RuHandlerMapping;
+import com.luwak.spring.foramework.webmvc.RuViewResolver;
 
 /**
  * @author wanggang
@@ -36,6 +38,8 @@ public class DispatcherServlet extends HttpServlet {
 	private List<RuHandlerMapping> handlerMapping = new ArrayList<RuHandlerMapping>();
 	
 	private Map<RuHandlerMapping, RuHandlerAdapter> handlerAdapter = new HashMap<RuHandlerMapping, RuHandlerAdapter>();
+	
+	private List<RuViewResolver> viewResolvers = new ArrayList<RuViewResolver>();
 
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -161,7 +165,15 @@ public class DispatcherServlet extends HttpServlet {
 	}
 	
 	private void initViewResolvers(LuwakApplicationContext context) {
+		//http://localhost/first.html
+		//解决页面名字和模板文件的关联问题
+		String templateRoot = context.getConfig().getProperty("templateRoot");
+		String templateRootPath = this.getClass().getClassLoader().getResource(templateRoot).getFile();
 		
+		File templateRootDir = new File(templateRootPath);
+		for(File template : templateRootDir.listFiles()) {
+			this.viewResolvers.add(new RuViewResolver(template.getName(), template));
+		}
 	}
 	
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

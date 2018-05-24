@@ -1,5 +1,7 @@
 package com.luwak.spring.foramework.webmvc;
 
+import java.io.File;
+
 /**
  * @author wanggang
  * @date 2018年5月7日 上午11:38:50
@@ -11,8 +13,12 @@ package com.luwak.spring.foramework.webmvc;
 //最终输出字符串，交给response输出
 public class RuViewResolver {
 	
-	public RuViewResolver(String viewName) {
-		
+	private String viewName;
+	private File templateFile;
+	
+	public RuViewResolver(String viewName, File templateFile) {
+		this.viewName = viewName;
+		this.templateFile = templateFile;
 	}
 	
 	public String viewResolver(RuModelAndView mv) {
