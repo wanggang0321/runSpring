@@ -1,6 +1,7 @@
 package com.luwak.spring.foramework.webmvc.servlet;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import com.luwak.spring.foramework.annotation.RuController;
 import com.luwak.spring.foramework.annotation.RuRequestMapping;
 import com.luwak.spring.foramework.aop.RuAopProxyUtils;
 import com.luwak.spring.foramework.context.LuwakApplicationContext;
+import com.luwak.spring.foramework.webmvc.RuHandlerAdapter;
 import com.luwak.spring.foramework.webmvc.RuHandlerMapping;
 
 /**
@@ -32,6 +34,8 @@ public class DispatcherServlet extends HttpServlet {
 	//思考一下这样设计的精妙之处
 	//handlerMapping是spring最核心的设计，它厉害到直接干掉了struts、webwork等MVC框架
 	private List<RuHandlerMapping> handlerMapping = new ArrayList<RuHandlerMapping>();
+	
+	private Map<RuHandlerMapping, RuHandlerAdapter> handlerAdapter = new HashMap<RuHandlerMapping, RuHandlerAdapter>();
 
 	public void init(ServletConfig config) throws ServletException {
 		
@@ -124,6 +128,37 @@ public class DispatcherServlet extends HttpServlet {
 	}
 	
 	private void initHandlerAdapters(LuwakApplicationContext context) {
+		
+		//在初始化阶段，我们能做的就是，将参数的名字或者类型保存下来
+		
+		for(RuHandlerMapping m : handlerMapping) {
+			
+			//每个方法都有一个参数列表
+			Map<String, Integer> params = new HashMap<String, Integer>();
+			
+			Annotation[][] anno = m.getMethod().getParameterAnnotations();
+			for(int i=0;i<anno.length;i++) {
+				for(Annotation a : anno[i]) {
+					if(a instanceof RuRequestMapping) {
+						String paramName = ((RuRequestMapping) a).value();
+						if(!"".equals(paramName)) {
+							params.put(paramName, i);
+						}
+					}
+				}
+			}
+			
+			//只取request和response
+			Class<?>[] pt = m.getMethod().getParameterTypes();
+			for(int i=0;i<pt.length;i++) {
+				Class<?> type = pt[i];
+				if(type==HttpServletRequest.class || type==HttpServletResponse.class) {
+					params.put(type.getName(), i);
+				}
+			}
+			
+			handlerAdapter.put(m, new RuHandlerAdapter(params));
+		}
 		
 	}
 	
