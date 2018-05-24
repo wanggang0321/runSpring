@@ -39,6 +39,7 @@ public class LuwakApplicationContext implements BeanFactory {
 	
 	public LuwakApplicationContext(String... configLocations) {
 		this.configLocations = configLocations;
+		refresh();
 	}
 	
 	public void refresh() {
@@ -77,7 +78,7 @@ public class LuwakApplicationContext implements BeanFactory {
 				
 				LuwakBeanDefinition beanDefinition = reader.register(className);
 				if(beanDefinition!=null) {
-					this.beanDefinitionMap.put(className, beanDefinition);
+					this.beanDefinitionMap.put(beanDefinition.getFactoryBeanName(), beanDefinition);
 				}
 				
 				Class<?>[] interfaces = claxx.getInterfaces();

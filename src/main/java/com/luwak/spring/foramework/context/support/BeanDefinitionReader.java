@@ -50,9 +50,9 @@ public class BeanDefinitionReader {
 		File[] files = file.listFiles();
 		for(File f : files) {
 			if(f.isDirectory()) {
-				doScan(f.getName());
+				doScan(packageName + "." + f.getName());
 			} else {
-				registryBeanClasses.add(packageName + "/" + f.getName().replace(".class", ""));
+				registryBeanClasses.add(packageName + "." + f.getName().replace(".class", ""));
 			}
 		}
 	}
@@ -63,7 +63,7 @@ public class BeanDefinitionReader {
 		if(this.registryBeanClasses.contains(className)) {
 			LuwakBeanDefinition beanDefinition = new LuwakBeanDefinition();
 			beanDefinition.setBeanClassName(className);
-			beanDefinition.setFactoryBeanName(lowerFirstCase(className.substring(className.indexOf(".") + 1)));
+			beanDefinition.setFactoryBeanName(lowerFirstCase(className.substring(className.lastIndexOf(".") + 1)));
 			return beanDefinition;
 		}
 		return null;
