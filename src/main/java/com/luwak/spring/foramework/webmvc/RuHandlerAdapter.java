@@ -1,5 +1,6 @@
 package com.luwak.spring.foramework.webmvc;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +40,13 @@ public class RuHandlerAdapter {
 		//2.拿到
 		//用户通过url传过来的参数列表
 		Map<String, String[]> reqParameterMap = req.getParameterMap();
+		
+		//3.构造实参列表
+		Object[] paramValues = new Object[paramTypes.length];
+		for(Map.Entry<String, String[]> param : reqParameterMap.entrySet()) {
+			String value = Arrays.toString(param.getValue()).replaceAll("\\[|\\]","").replaceAll("\\s","");
+			
+		}
 		
 		return null;
 	}

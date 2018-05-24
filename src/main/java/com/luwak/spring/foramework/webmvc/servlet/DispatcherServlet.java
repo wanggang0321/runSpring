@@ -73,7 +73,6 @@ public class DispatcherServlet extends HttpServlet {
 	}
 
 	private void initFlashMapManager(LuwakApplicationContext context) {}
-	private void initViewResolvers(LuwakApplicationContext context) {}
 	private void initRequestToViewNameTranslator(LuwakApplicationContext context) {}
 	private void initHandlerExceptionResolvers(LuwakApplicationContext context) {}
 	private void initThemeResolver(LuwakApplicationContext context) {}
@@ -159,6 +158,9 @@ public class DispatcherServlet extends HttpServlet {
 			
 			handlerAdapter.put(m, new RuHandlerAdapter(params));
 		}
+	}
+	
+	private void initViewResolvers(LuwakApplicationContext context) {
 		
 	}
 	
