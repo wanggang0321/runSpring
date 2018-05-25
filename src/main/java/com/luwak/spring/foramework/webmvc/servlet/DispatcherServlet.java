@@ -38,9 +38,9 @@ public class DispatcherServlet extends HttpServlet {
 	
 	//思考一下这样设计的精妙之处
 	//handlerMapping是spring最核心的设计，它厉害到直接干掉了struts、webwork等MVC框架
-	private List<RuHandlerMapping> handlerMapping = new ArrayList<RuHandlerMapping>();
+	private List<RuHandlerMapping> handlerMappings = new ArrayList<RuHandlerMapping>();
 	
-	private Map<RuHandlerMapping, RuHandlerAdapter> handlerAdapter = new HashMap<RuHandlerMapping, RuHandlerAdapter>();
+	private Map<RuHandlerMapping, RuHandlerAdapter> handlerAdapters = new HashMap<RuHandlerMapping, RuHandlerAdapter>();
 	
 	private List<RuViewResolver> viewResolvers = new ArrayList<RuViewResolver>();
 
@@ -122,7 +122,7 @@ public class DispatcherServlet extends HttpServlet {
 					RuRequestMapping requestMapping = m.getAnnotation(RuRequestMapping.class);
 					String regex = ("/" + baseUrl + requestMapping.value().replaceAll("\\*", ".*")).replaceAll("/+", "/");
 					Pattern pattern = Pattern.compile(regex);
-					this.handlerMapping.add(new RuHandlerMapping(controller, m, pattern));
+					this.handlerMappings.add(new RuHandlerMapping(controller, m, pattern));
 					
 					System.out.println("Mapping : " + regex + " , " + m);
 				}
@@ -137,7 +137,7 @@ public class DispatcherServlet extends HttpServlet {
 		
 		//在初始化阶段，我们能做的就是，将参数的名字或者类型保存下来
 		
-		for(RuHandlerMapping m : handlerMapping) {
+		for(RuHandlerMapping m : handlerMappings) {
 			
 			//每个方法都有一个参数列表
 			Map<String, Integer> params = new HashMap<String, Integer>();
@@ -163,7 +163,7 @@ public class DispatcherServlet extends HttpServlet {
 				}
 			}
 			
-			handlerAdapter.put(m, new RuHandlerAdapter(params));
+			handlerAdapters.put(m, new RuHandlerAdapter(params));
 		}
 	}
 	
@@ -210,14 +210,14 @@ public class DispatcherServlet extends HttpServlet {
 	
 	private RuHandlerMapping getHandler(HttpServletRequest req) {
 		
-		if(this.handlerMapping.isEmpty()) {
+		if(this.handlerMappings.isEmpty()) {
 			return null;
 		}
 		
 		String url = req.getRequestURI();
 		String contextPath = req.getContextPath();
 		url = url.replace(contextPath, "").replaceAll("/+", "/");
-		for(RuHandlerMapping handler : handlerMapping) {
+		for(RuHandlerMapping handler : handlerMappings) {
 			Matcher matcher = handler.getPattern().matcher(url);
 			if(!matcher.matches()) {
 				continue;
@@ -228,10 +228,10 @@ public class DispatcherServlet extends HttpServlet {
 	}
 	
 	private RuHandlerAdapter getHandlerAdapter(RuHandlerMapping handler) {
-		if(this.handlerAdapter.isEmpty()) {
+		if(this.handlerAdapters.isEmpty()) {
 			return null;
 		}
-		return this.handlerAdapter.get(handler);
+		return this.handlerAdapters.get(handler);
 	}
 	
 	private void processDispatchResult(HttpServletResponse resp, RuModelAndView mv) throws Exception {

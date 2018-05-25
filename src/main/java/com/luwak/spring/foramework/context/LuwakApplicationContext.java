@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.luwak.spring.demo.action.MyAction;
 import com.luwak.spring.foramework.annotation.RuAutowired;
 import com.luwak.spring.foramework.annotation.RuController;
 import com.luwak.spring.foramework.annotation.RuService;
@@ -59,10 +58,10 @@ public class LuwakApplicationContext implements BeanFactory {
 		
 		//依赖注入（lazy-init=false）
 		//在这里自动调用getBean
-		doAutowire();
+		doAutowired();
 		
-		MyAction action = (MyAction) this.getBean("myAction");
-		action.query("Luwak");
+//		MyAction action = (MyAction) this.getBean("myAction");
+//		action.query("Luwak");
 	}
 	
 	private void doRegistry(List<String> beanDefinitions) {
@@ -101,7 +100,7 @@ public class LuwakApplicationContext implements BeanFactory {
 	}
 	
 	//自动注入
-	public void doAutowire() {
+	public void doAutowired() {
 		
 		for(Map.Entry<String, LuwakBeanDefinition> entry : beanDefinitionMap.entrySet()) {
 			String beanName = entry.getKey();
@@ -137,7 +136,7 @@ public class LuwakApplicationContext implements BeanFactory {
 			RuAutowired autowired = f.getAnnotation(RuAutowired.class);
 			String autowiredBeanName = autowired.value().trim();
 			if("".equals(autowiredBeanName)) {
-				autowiredBeanName = f.getName();
+				autowiredBeanName = f.getType().getName();
 			}
 			
 			f.setAccessible(true);
