@@ -23,10 +23,10 @@ public class RuHandlerAdapter {
 	 * 
 	 * @param req
 	 * @param resp
-	 * @param handler
+	 * @param handler 为什么要把handler传进来，因为handler中包含了Controller、method、url信息
 	 * @return
 	 */
-	public RuModelAndView handle(HttpServletRequest req, HttpServletResponse resp, RuHandlerMapping handler) {
+	public RuModelAndView handle(HttpServletRequest req, HttpServletResponse resp, RuHandlerMapping handler) throws Exception {
 		
 		//根据用户请求的参数信息，跟method中的参数信息进行动态匹配
 		//resp传进来的目的只有一个，只是为了将其赋值给方法参数
@@ -38,14 +38,53 @@ public class RuHandlerAdapter {
 		Class<?>[] paramTypes = handler.getMethod().getParameterTypes();
 		
 		//2.拿到
-		//用户通过url传过来的参数列表
+		//用户通过url传过来的参数列表，这个reqParameterMap是只读的map，如何实现？
 		Map<String, String[]> reqParameterMap = req.getParameterMap();
 		
 		//3.构造实参列表
 		Object[] paramValues = new Object[paramTypes.length];
 		for(Map.Entry<String, String[]> param : reqParameterMap.entrySet()) {
 			String value = Arrays.toString(param.getValue()).replaceAll("\\[|\\]","").replaceAll("\\s","");
+			if(!this.paramMapping.containsKey(param.getKey())) {
+				continue;
+			}
 			
+			int index = this.paramMapping.get(param.getKey());
+			
+			//需要对value转换类型
+			paramValues[index] = caseString(paramTypes[index], value);
+		}
+		
+		if(this.paramMapping.containsKey(HttpServletRequest.class)) {
+			int indexReq = this.paramMapping.get(HttpServletRequest.class);
+			paramValues[indexReq] = req;
+		}
+		
+		if(this.paramMapping.containsKey(HttpServletResponse.class)) {
+			int indexResp = this.paramMapping.get(HttpServletResponse.class);
+			paramValues[indexResp] = resp;
+		}
+		
+		//从handler中获取Controller、method，利用反射进行调用
+		Object result = handler.getMethod().invoke(handler.getController(), paramValues);
+		if(null==result) return null;
+		
+		boolean isModelAndView = handler.getMethod().getReturnType() == RuModelAndView.class;
+		if(isModelAndView) {
+			return (RuModelAndView) result;
+		}
+		
+		return null;
+	}
+	
+	private Object caseString(Class<?> clazz, String value) {
+		
+		if(clazz == String.class) {
+			return value;
+		} else if(clazz == Integer.class) {
+			return Integer.valueOf(value);
+		} else if(clazz == int.class) {
+			return Integer.valueOf(value).intValue();
 		}
 		
 		return null;

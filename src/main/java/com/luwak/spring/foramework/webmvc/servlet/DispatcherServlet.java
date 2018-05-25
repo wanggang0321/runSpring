@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
@@ -22,6 +24,7 @@ import com.luwak.spring.foramework.aop.RuAopProxyUtils;
 import com.luwak.spring.foramework.context.LuwakApplicationContext;
 import com.luwak.spring.foramework.webmvc.RuHandlerAdapter;
 import com.luwak.spring.foramework.webmvc.RuHandlerMapping;
+import com.luwak.spring.foramework.webmvc.RuModelAndView;
 import com.luwak.spring.foramework.webmvc.RuViewResolver;
 
 /**
@@ -183,9 +186,74 @@ public class DispatcherServlet extends HttpServlet {
 
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
+		try {
+			doDispatch(req, resp);
+		} catch (Exception e) {
+			resp.getWriter().write("<font size='25' color='blue'>500 Exception</font><br/>Details:<br/>" + Arrays.toString(e.getStackTrace()).replaceAll("\\[|\\]","")
+                    .replaceAll("\\s","\r\n") +  "<font color='green'><i>Copyright@GupaoEDU</i></font>");
+			e.printStackTrace();
+		}
+	}
+	
+	private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+		
+		RuHandlerMapping handler = getHandler(req);
+		
+		RuHandlerAdapter adapter = getHandlerAdapter(handler);
+		
+		//获得处理结果
+		RuModelAndView mv = adapter.handle(req, resp, handler);
+		
+		//输出结果
+		processDispatchResult(resp, mv);
+	}
+	
+	private RuHandlerMapping getHandler(HttpServletRequest req) {
+		
+		if(this.handlerMapping.isEmpty()) {
+			return null;
+		}
+		
 		String url = req.getRequestURI();
 		String contextPath = req.getContextPath();
-		
+		url = url.replace(contextPath, "").replaceAll("/+", "/");
+		for(RuHandlerMapping handler : handlerMapping) {
+			Matcher matcher = handler.getPattern().matcher(url);
+			if(!matcher.matches()) {
+				continue;
+			}
+			return handler;
+		}
+		return null;
 	}
-
+	
+	private RuHandlerAdapter getHandlerAdapter(RuHandlerMapping handler) {
+		if(this.handlerAdapter.isEmpty()) {
+			return null;
+		}
+		return this.handlerAdapter.get(handler);
+	}
+	
+	private void processDispatchResult(HttpServletResponse resp, RuModelAndView mv) throws Exception {
+		
+		if(mv==null) {
+			return;
+		}
+		
+		if(this.viewResolvers.isEmpty()) {
+			return;
+		}
+		
+		for(RuViewResolver v : this.viewResolvers) {
+			if(!v.getViewName().equals(mv.getViewName())) {
+				continue;
+			}
+			String out = v.viewResolver(mv);
+			if(null!=out) {
+				resp.getWriter().write(out);
+				break;
+			}
+		}
+	}
+	
 }

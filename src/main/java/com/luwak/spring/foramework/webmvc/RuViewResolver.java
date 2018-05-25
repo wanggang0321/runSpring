@@ -24,5 +24,13 @@ public class RuViewResolver {
 	public String viewResolver(RuModelAndView mv) {
 		return null;
 	}
+
+	public String getViewName() {
+		return viewName;
+	}
+
+	public void setViewName(String viewName) {
+		this.viewName = viewName;
+	}
 	
 }
