@@ -9,7 +9,8 @@ package com.luwak.spring.foramework.beans;
 public class LuwakBeanDefinition {
 	
 	private String beanClassName;
-	private boolean lazyInit = true;
+	//lazy-init="false"（默认false），表示立即加载，表示在spring启动时，立刻进行实例化
+	private boolean lazyInit = false;
 	private String factoryBeanName;
 	
 	public String getBeanClassName() {

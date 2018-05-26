@@ -197,7 +197,12 @@ public class DispatcherServlet extends HttpServlet {
 	
 	private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		
+		//根据用户请求的url来获得一个handler
 		RuHandlerMapping handler = getHandler(req);
+		if(handler == null){
+            resp.getWriter().write("<font size='25' color='red'>404 Not Found</font><br/><font color='green'><i>Copyright@GupaoEDU</i></font>");
+            return;
+        }
 		
 		RuHandlerAdapter adapter = getHandlerAdapter(handler);
 		
