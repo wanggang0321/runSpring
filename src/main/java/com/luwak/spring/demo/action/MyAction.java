@@ -25,6 +25,7 @@ public class MyAction {
 	
 	@RuRequestMapping("/query.json")
 	public void query(HttpServletRequest request, HttpServletResponse response, @RuRequestParamter("name") String name) {
+		String nameStr = request.getParameter("name");
 		String result = queryService.query(name);
 		System.out.println(result);
 		try {

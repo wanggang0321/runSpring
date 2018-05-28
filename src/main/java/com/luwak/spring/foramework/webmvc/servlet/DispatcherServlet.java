@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.luwak.spring.foramework.annotation.RuController;
 import com.luwak.spring.foramework.annotation.RuRequestMapping;
+import com.luwak.spring.foramework.annotation.RuRequestParamter;
 import com.luwak.spring.foramework.aop.RuAopProxyUtils;
 import com.luwak.spring.foramework.context.LuwakApplicationContext;
 import com.luwak.spring.foramework.webmvc.RuHandlerAdapter;
@@ -145,8 +146,8 @@ public class DispatcherServlet extends HttpServlet {
 			Annotation[][] anno = m.getMethod().getParameterAnnotations();
 			for(int i=0;i<anno.length;i++) {
 				for(Annotation a : anno[i]) {
-					if(a instanceof RuRequestMapping) {
-						String paramName = ((RuRequestMapping) a).value();
+					if(a instanceof RuRequestParamter) {
+						String paramName = ((RuRequestParamter) a).value();
 						if(!"".equals(paramName)) {
 							params.put(paramName, i);
 						}

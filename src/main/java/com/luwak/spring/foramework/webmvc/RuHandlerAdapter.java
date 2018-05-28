@@ -55,13 +55,13 @@ public class RuHandlerAdapter {
 			paramValues[index] = caseString(paramTypes[index], value);
 		}
 		
-		if(this.paramMapping.containsKey(HttpServletRequest.class)) {
-			int indexReq = this.paramMapping.get(HttpServletRequest.class);
+		if(this.paramMapping.containsKey(HttpServletRequest.class.getName())) {
+			int indexReq = this.paramMapping.get(HttpServletRequest.class.getName());
 			paramValues[indexReq] = req;
 		}
 		
-		if(this.paramMapping.containsKey(HttpServletResponse.class)) {
-			int indexResp = this.paramMapping.get(HttpServletResponse.class);
+		if(this.paramMapping.containsKey(HttpServletResponse.class.getName())) {
+			int indexResp = this.paramMapping.get(HttpServletResponse.class.getName());
 			paramValues[indexResp] = resp;
 		}
 		
