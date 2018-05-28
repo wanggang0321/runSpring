@@ -4,12 +4,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.luwak.spring.demo.service.IQueryService;
+import com.luwak.spring.foramework.annotation.RuService;
 
 /**
  * @author wanggang
  * @date 2018年5月2日 上午9:45:10
  * 
  */
+@RuService
 public class QueryService implements IQueryService {
 
 	public String query(String name) {

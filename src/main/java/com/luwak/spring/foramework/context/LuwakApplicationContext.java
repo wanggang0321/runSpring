@@ -88,7 +88,7 @@ public class LuwakApplicationContext implements BeanFactory {
 				for(Class<?> i : interfaces) {
 					//如果是多个实现类，只能覆盖，因为Spring没那么智能，就是这么傻，这里需要验证
 					//这个时候，可以自定义名字
-					this.beanDefinitionMap.put(i.getSimpleName(), beanDefinition);
+					this.beanDefinitionMap.put(i.getName(), beanDefinition);
 				}
 				
 				//到这里为止，容器初始化完毕
